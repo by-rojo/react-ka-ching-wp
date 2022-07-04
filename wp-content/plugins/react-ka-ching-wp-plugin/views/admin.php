@@ -2,6 +2,8 @@
 /*
     Renders the admin panel
 */
+$react_ka_ching_add_meta_nonce = wp_create_nonce('react_ka_ching_settings_form_nonce');
+
 ?>
 
 <div class="react-ka-ching-app">
@@ -11,7 +13,10 @@
     </div>
     <div class="react-ka-ching-app-content">
         <h2>Settings</h2>
-        <form id="react-ka-ching-form" autocomplete="off">
+        <form action="<?php echo esc_url(admin_url('admin-post.php')); ?>" method="post" id="react_ka_ching_settings_form" autocomplete="off">
+            <input type="hidden" name="action" value="react_ka_ching_form_response">
+            <input type="hidden" name="react_ka_ching_settings_form_nonce" value="<?php echo $react_ka_ching_add_meta_nonce ?>" />
+
             <fieldset>
                 <label>WordPress username</label>
                 <input type="text" name="wp-user"></input>
@@ -58,9 +63,9 @@
 <script type="text/javascript">
     var form = document.getElementById("react-ka-ching-form")
     form.addEventListener("submit", function(e) {
-        e.preventDefault()
-        const fData = new FormData(e.target)
-        const payload = {}
+        //  e.preventDefault()
+        // const fData = new FormData(e.target)
+        // const payload = {}
         //todo move wp and amazon code into here
     })
 </script>

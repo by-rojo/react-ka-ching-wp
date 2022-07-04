@@ -1,0 +1,5 @@
+[03-Jul-2022 07:46:43 America/Chicago] PHP Warning:  Version warning: Imagick was compiled against Image Magick version 1650 but version 1654 is loaded. Imagick will run but may behave surprisingly in Unknown on line 0
+[03-Jul-2022 07:46:43 America/Chicago] PHP Fatal error:  Uncaught Error: Call to undefined function get_option() in /home1/rvdevil/public_html/wp-content/themes/makali/404.php:9
+Stack trace:
+#0 {main}
+  thrown in /home1/rvdevil/public_html/wp-content/themes/makali/404.php on line 9

@@ -10,6 +10,7 @@
         <hr />
     </div>
     <div class="react-ka-ching-app-content">
+        <h2>Settings</h2>
         <form id="react-ka-ching-form" autocomplete="off">
             <fieldset>
                 <label>WordPress username</label>
@@ -50,6 +51,7 @@
             <br />
             <input type="submit" value="Save"></input>
         </form>
+        <hr />
     </div>
 </div>
 

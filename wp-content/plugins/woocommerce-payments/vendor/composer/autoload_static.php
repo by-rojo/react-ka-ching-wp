@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitaf4bdee58886d2ccf7c88214529f1c9e
+class ComposerStaticInitfba13a170c74c50b26f35cc74c81c7d4
 {
     public static $files = array (
         '3773ef3f09c37da5478d578e32b03a4b' => __DIR__ . '/..' . '/automattic/jetpack-assets/actions.php',
@@ -148,7 +148,6 @@ class ComposerStaticInitaf4bdee58886d2ccf7c88214529f1c9e
         'Automattic\\Jetpack\\Sync\\Utils' => __DIR__ . '/..' . '/automattic/jetpack-sync/src/class-utils.php',
         'Automattic\\Jetpack\\Terms_Of_Service' => __DIR__ . '/..' . '/automattic/jetpack-connection/src/class-terms-of-service.php',
         'Automattic\\Jetpack\\Tracking' => __DIR__ . '/..' . '/automattic/jetpack-tracking/src/class-tracking.php',
-        'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'Composer\\Installers\\AglInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/AglInstaller.php',
         'Composer\\Installers\\AimeosInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/AimeosInstaller.php',
         'Composer\\Installers\\AnnotateCmsInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/AnnotateCmsInstaller.php',
@@ -291,9 +290,9 @@ class ComposerStaticInitaf4bdee58886d2ccf7c88214529f1c9e
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitaf4bdee58886d2ccf7c88214529f1c9e::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitaf4bdee58886d2ccf7c88214529f1c9e::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitaf4bdee58886d2ccf7c88214529f1c9e::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitfba13a170c74c50b26f35cc74c81c7d4::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitfba13a170c74c50b26f35cc74c81c7d4::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitfba13a170c74c50b26f35cc74c81c7d4::$classMap;
 
         }, null, ClassLoader::class);
     }

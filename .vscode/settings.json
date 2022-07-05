@@ -71,7 +71,8 @@
         "Zend OPcache",
         "zip",
         "zlib",
-        "wordpress"
+        "wordpress",
+        "mcrypt"
     ],
     "editor.formatOnSave": true
 }

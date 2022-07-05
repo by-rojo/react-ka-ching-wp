@@ -140,13 +140,14 @@ if (!class_exists('reactkachingwpplugin')) {
 
         function my_thank_you_text($content)
         {
-            return $content .= '<p>Thank you for reading!</p>';
+            return $content;
         }
 
         function render_admin_panel()
         {
             $row = $this->wpdb()->get_row("SELECT * FROM " . $this->tableName() . " WHERE key_name='config'");
             include(sprintf("%s/views/admin.php", dirname(__FILE__)));
+            include(sprintf("%s/views/seed.php", dirname(__FILE__)));
         }
 
         function add_menu()

@@ -59,16 +59,5 @@ $adminSettings = json_decode($row->key_value);
             <br />
             <input type="submit" value="Save"></input>
         </form>
-        <hr />
     </div>
 </div>
-
-<script type="text/javascript">
-    var form = document.getElementById("react-ka-ching-form")
-    form.addEventListener("submit", function(e) {
-        //  e.preventDefault()
-        // const fData = new FormData(e.target)
-        // const payload = {}
-        //todo move wp and amazon code into here
-    })
-</script>

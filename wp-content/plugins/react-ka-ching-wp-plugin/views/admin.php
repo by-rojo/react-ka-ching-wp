@@ -3,7 +3,7 @@
     Renders the admin panel
 */
 $react_ka_ching_add_meta_nonce = wp_create_nonce('react_ka_ching_settings_form_nonce');
-$adminSettings = json_decode($row->key_value);
+$adminSettings = $this->get_config();
 ?>
 
 <div class="react-ka-ching-app">
@@ -27,6 +27,10 @@ $adminSettings = json_decode($row->key_value);
             <fieldset>
                 <label>WordPress user password</label>
                 <input type="password" name="wpPass" value="<?php echo $this->encode_decode($adminSettings->wpPass, false); ?>"></input>
+            </fieldset>
+            <fieldset>
+                <label>WordPress internal url</label>
+                <input type="url" name="wpUrl" value="<?php echo $adminSettings->wpUrl ? $adminSettings->wpUrl : site_url(); ?>"></input>
             </fieldset>
             <fieldset>
                 <label>WordPress default post status</label>

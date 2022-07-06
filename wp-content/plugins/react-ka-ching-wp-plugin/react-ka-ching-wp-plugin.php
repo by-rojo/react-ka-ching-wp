@@ -8,7 +8,6 @@
  * Author: By Rojo
  * Author URI: https://byrojo.com
  */
-
 if (!class_exists('reactkachingwpplugin')) {
 
     class ReactKaChingWPPlugin
@@ -26,6 +25,7 @@ if (!class_exists('reactkachingwpplugin')) {
             add_action('the_content', [$this, 'my_thank_you_text']);
             add_action('admin_menu', [$this, 'add_menu']);
             add_action('admin_post_react_ka_ching_form_response', [$this, 'updateConfig']);
+            add_action('admin_post_react_ka_ching_seed_form_response', [$this, 'seedData']);
         }
 
         function wpdb()
@@ -103,15 +103,16 @@ if (!class_exists('reactkachingwpplugin')) {
                 $wpUser = sanitize_user($_POST["wpUser"]);
                 $wpPass = sanitize_text_field($_POST["wpPass"]);
                 $wpStatus = sanitize_text_field($_POST["wpStatus"]);
-                $amazonAccessKey = sanitize_key($_POST["amazonAccessKey"]);
-                $amazonSecretKey = sanitize_key($_POST["amazonSecretKey"]);
+                $amazonAccessKey = sanitize_text_field($_POST["amazonAccessKey"]);
+                $amazonSecretKey = sanitize_text_field($_POST["amazonSecretKey"]);
                 $amazonPartnerTag = sanitize_text_field($_POST["amazonPartnerTag"]);
                 $amazonHost = sanitize_text_field($_POST["amazonHost"]);
                 $amazonRegion = sanitize_text_field($_POST["amazonRegion"]);
-
+                $wpUrl = esc_url($_POST["wpUrl"]);
                 $json = json_encode([
                     "wpUser" => $wpUser,
                     "wpPass" => $this->encode_decode($wpPass),
+                    "wpUrl" => $wpUrl,
                     "wpStatus" => $wpStatus,
                     "amazonAccessKey" => $this->encode_decode($amazonAccessKey),
                     "amazonSecretKey" => $this->encode_decode($amazonSecretKey),
@@ -143,9 +144,13 @@ if (!class_exists('reactkachingwpplugin')) {
             return $content;
         }
 
-        function render_admin_panel()
+        function get_config()
         {
             $row = $this->wpdb()->get_row("SELECT * FROM " . $this->tableName() . " WHERE key_name='config'");
+            return json_decode($row->key_value);
+        }
+        function render_admin_panel()
+        {
             include(sprintf("%s/views/admin.php", dirname(__FILE__)));
             include(sprintf("%s/views/seed.php", dirname(__FILE__)));
         }
@@ -160,6 +165,41 @@ if (!class_exists('reactkachingwpplugin')) {
         function plugin_name()
         {
             return "react-ka-ching-wp-plugin";
+        }
+
+        function seedData()
+        {
+            if (isset($_POST['react_ka_ching_seed_form_nonce']) && wp_verify_nonce($_POST['react_ka_ching_seed_form_nonce'], 'react_ka_ching_seed_form_nonce')) {
+                $adminSettings = $this->get_config();
+                $envs = "WP_USER=" . $adminSettings->wpUser;
+                $envs = $envs . " WP_PASS=\"" . $this->encode_decode($adminSettings->wpPass, false) . "\"";
+                $envs = $envs . " WP_STATUS=" . $adminSettings->wpStatus;
+                $envs = $envs . " AMAZON_ACCESS_KEY=" . $this->encode_decode($adminSettings->amazonAccessKey, false);
+                $envs = $envs . " AMAZON_SECRET_KEY=" .  $this->encode_decode($adminSettings->amazonSecretKey, false);
+                $envs = $envs . " AMAZON_KEYWORDS=" . sanitize_text_field($_POST["amazonKeywords"]);
+                $envs = $envs . " AMAZON_SEARCH_INDEX=" . sanitize_text_field($_POST["amazonSearchIndex"]);
+                $envs = $envs . " AMAZON_PARTNER_TAG=" . $adminSettings->amazonPartnerTag;
+                $envs = $envs . " AMAZON_HOST=" . $adminSettings->amazonHost;
+                $envs = $envs . " AMAZON_REGION=" . $adminSettings->amazonRegion;
+                $envs = $envs . " WP_URL=" .  $adminSettings->wpUrl;
+
+                exec($envs . " npx --yes react-ka-ching --seed --skip --debug", $output, $result);
+                echo exec("bash " . __DIR__ . "/seed.sh", $output, $result);
+
+                // todo make a cron task add it to a table
+                // then create a shell script to update the table when its complete
+                // we need to keep a record of all the products that were updated
+
+            }
+
+            wp_redirect(admin_url('admin.php') . "?page=" . $this->plugin_name());
+            exit;
+        }
+
+        function insertCronJob()
+        {
+            //cron job should be given an ID
+            $cronJob = '1 0 0 0 0';
         }
     }
 

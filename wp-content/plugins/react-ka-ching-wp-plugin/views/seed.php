@@ -16,6 +16,11 @@ $react_ka_ching_add_meta_nonce_sd = wp_create_nonce('react_ka_ching_seed_form_no
         <input type="hidden" name="react_ka_ching_seed_form_nonce" value="<?php echo $react_ka_ching_add_meta_nonce_sd ?>" />
 
         <fieldset>
+            <label>Seed Name</label>
+            <input type="text" name="seedName" required></input>
+        </fieldset>
+
+        <fieldset>
             <label>Amazon Search Index</label>
             <input type="text" name="amazonSearchIndex" required></input>
         </fieldset>

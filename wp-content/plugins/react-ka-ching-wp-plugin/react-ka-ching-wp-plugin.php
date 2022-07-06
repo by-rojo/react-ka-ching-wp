@@ -22,10 +22,16 @@ if (!class_exists('reactkachingwpplugin')) {
             register_deactivation_hook(__FILE__, [$this, 'uninstall']);
             register_activation_hook(__FILE__, [$this, 'install']);
             register_activation_hook(__FILE__, [$this, 'setConfig']);
-            add_action('the_content', [$this, 'my_thank_you_text']);
             add_action('admin_menu', [$this, 'add_menu']);
             add_action('admin_post_react_ka_ching_form_response', [$this, 'updateConfig']);
             add_action('admin_post_react_ka_ching_seed_form_response', [$this, 'seedData']);
+            add_action('wp_ajax_react_ka_ching_seed_get_request', [$this, 'getSeedTableAjax']);
+            add_action('rest_api_init', function () {
+                register_rest_route('react-ka-ching/v1', '/webhook', array(
+                    'methods' => 'POST',
+                    'callback' => 'webhookRequest',
+                ));
+            });
         }
 
         function wpdb()
@@ -36,6 +42,11 @@ if (!class_exists('reactkachingwpplugin')) {
         function tableName()
         {
             return $this->wpdb()->prefix . "react_ka_ching";
+        }
+
+        function seedTableName()
+        {
+            return $this->wpdb()->prefix . "react_ka_ching_seeds";
         }
 
         function install()
@@ -52,17 +63,35 @@ if (!class_exists('reactkachingwpplugin')) {
         {
             $sql = "DROP TABLE " . $this->tableName();
             $this->wpdb()->query($sql);
+            $sql = "DROP TABLE " . $this->seedTableName();
+            $this->wpdb()->query($sql);
         }
 
         function setupDatabase()
         {
             $charset_collate = $this->wpdb()->get_charset_collate();
             $tableName = $this->tableName();
+            $seedTableName = $this->seedTableName();
             $sql = "CREATE TABLE $tableName (
                         key_name text NOT NULL,
                         key_value text NOT NULL,
                         CONSTRAINT rkc_key PRIMARY KEY (key_name(255))
                         ) $charset_collate;";
+
+            $this->wpdb()->query($sql);
+
+            $sql = "CREATE TABLE $seedTableName (
+                id int NOT NULL PRIMARY KEY AUTO_INCREMENT,
+                seed_name text,
+                seed_search_index text,
+                seed_search_keywords text,
+                seed_count int,
+                seed_total int,
+                seed_remaining int,
+                seed_errors int,
+                date_created datetime DEFAULT NOW(),
+                date_updated datetime DEFAULT NOW()
+                ) $charset_collate;";
 
             $this->wpdb()->query($sql);
         }
@@ -139,11 +168,6 @@ if (!class_exists('reactkachingwpplugin')) {
             }
         }
 
-        function my_thank_you_text($content)
-        {
-            return $content;
-        }
-
         function get_config()
         {
             $row = $this->wpdb()->get_row("SELECT * FROM " . $this->tableName() . " WHERE key_name='config'");
@@ -153,6 +177,7 @@ if (!class_exists('reactkachingwpplugin')) {
         {
             include(sprintf("%s/views/admin.php", dirname(__FILE__)));
             include(sprintf("%s/views/seed.php", dirname(__FILE__)));
+            include(sprintf("%s/views/seed-records.php", dirname(__FILE__)));
         }
 
         function add_menu()
@@ -165,6 +190,75 @@ if (!class_exists('reactkachingwpplugin')) {
         function plugin_name()
         {
             return "react-ka-ching-wp-plugin";
+        }
+
+        function getSeedRecords()
+        {
+            $records = $this->wpdb()->get_results("SELECT * FROM " . $this->seedTableName() . " ORDER BY id DESC");
+            return $records;
+        }
+
+        function getSeedRecord($id)
+        {
+            return $this->wpdb()->get_row("SELECT * FROM " . $this->seedTableName() . " WHERE id=$id");
+        }
+
+        function createSeedRecord($seedName, $params)
+        {
+            return $this->wpdb()->insert(
+                $this->seedTableName(),
+                array(
+                    'seed_name' => $seedName,
+                    'seed_search_index' => $params->seedSearchIndex ?? $params["seedSearchIndex"],
+                    'seed_search_keywords' => $params->seedSearchKeywords ?? $params["seedSearchKeywords"],
+                    'seed_count' => $params->seedCount  ?? $params["seedCount"] ?? 0,
+                    'seed_remaining' => $params->seedRemaining ?? $params["seedRemaining"] ?? 0,
+                    'seed_errors' => $params->seedErrors ?? $params["seedErrors"] ?? 0,
+                    'seed_total' => $params->seedTotal ?? $params["seedTotal"] ?? 0,
+                )
+            );
+        }
+
+        function getSeedTableAjax()
+        {
+            if (
+                current_user_can('manage_options') &&
+                wp_verify_nonce($_REQUEST['nonce'], 'react_ka_ching_seed_get_request')
+            ) {
+                $array_result = $this->getSeedRecords();
+
+                // Make your array as json
+                wp_send_json($array_result);
+            } else {
+                wp_send_json("Invalid request", 500);
+            }
+            wp_die();
+        }
+
+        function updateSeedRecord($id, $params)
+        {
+            return $this->wpdb()->update(
+                $this->seedTableName(),
+                [
+                    'seed_search_index' => $params->seedSearchIndex ?? $params["seedSearchIndex"],
+                    'seed_search_keywords' => $params->seedSearchKeywords ?? $params["seedSearchKeywords"],
+                    'seed_count' => $params->seedCount  ?? $params["seedCount"],
+                    'seed_remaining' => $params->seedRemaining ?? $params["seedRemaining"],
+                    'seed_errors' => $params->seedErrors ?? $params["seedErrors"],
+                    'seed_total' => $params->seedTotal ?? $params["seedTotal"],
+                    'date_updated' => current_time('mysql')
+                ],
+                [
+                    "id" => $id
+                ]
+            );
+        }
+
+        function deleteSeedRecord()
+        {
+
+            $id = $_POST["id"];
+            $this->wpdb()->delete($this->seedTableName(), ["id" => $id]);
         }
 
         function seedData()
@@ -184,10 +278,43 @@ if (!class_exists('reactkachingwpplugin')) {
                 $envs = $envs . " WP_URL=" .  $adminSettings->wpUrl;
 
                 `{$envs} npx --yes react-ka-ching --seed --skip >> /tmp/react-ka-ching.log &`;
+                $this->createSeedRecord(sanitize_text_field($_POST["seedName"]), [
+                    'seedSearchIndex' => sanitize_text_field($_POST["amazonKeywords"]),
+                    'seedSearchKeywords' => sanitize_text_field($_POST["amazonSearchIndex"])
+                ]);
             }
 
             wp_redirect(admin_url('admin.php') . "?page=" . $this->plugin_name());
             exit;
+        }
+
+
+        function webhookRequest()
+        {
+            $id = intval($_POST["id"], 10);
+            if (
+                current_user_can('manage_options')
+            ) {
+                $params = [
+                    "seedName" => $_POST["seedName"],
+                    "seedCount" => $_POST["seedCount"],
+                    "seedRemaining" => $_POST["seedRemaining"],
+                    "seedErrors" => $_POST["seedErrors"],
+                    "seedTotal" => $_POST["seedTotal"]
+                ];
+                if ($_POST["id"]) {
+                    $this->createSeedRecord($_POST["seedName"], $params);
+                } else {
+                    $this->updateSeedRecord($id, $params);
+                }
+
+
+                // Make your array as json
+                wp_send_json($this->getSeedRecord($id));
+            } else {
+                wp_send_json("Current user is unable to make this request", 500);
+            }
+            wp_die();
         }
     }
 

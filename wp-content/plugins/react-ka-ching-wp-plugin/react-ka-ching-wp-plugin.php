@@ -183,23 +183,11 @@ if (!class_exists('reactkachingwpplugin')) {
                 $envs = $envs . " AMAZON_REGION=" . $adminSettings->amazonRegion;
                 $envs = $envs . " WP_URL=" .  $adminSettings->wpUrl;
 
-                exec($envs . " npx --yes react-ka-ching --seed --skip --debug", $output, $result);
-                echo exec("bash " . __DIR__ . "/seed.sh", $output, $result);
-
-                // todo make a cron task add it to a table
-                // then create a shell script to update the table when its complete
-                // we need to keep a record of all the products that were updated
-
+                `{$envs} npx --yes react-ka-ching --seed --skip >> /tmp/react-ka-ching.log &`;
             }
 
             wp_redirect(admin_url('admin.php') . "?page=" . $this->plugin_name());
             exit;
-        }
-
-        function insertCronJob()
-        {
-            //cron job should be given an ID
-            $cronJob = '1 0 0 0 0';
         }
     }
 

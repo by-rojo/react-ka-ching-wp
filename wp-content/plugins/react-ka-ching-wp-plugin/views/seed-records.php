@@ -17,8 +17,8 @@ $adminUrl = admin_url('admin-ajax.php');
                 <th>Seed Name</th>
                 <th>Seed Index</th>
                 <th>Seed Terms</th>
-                <th>Seed Count</th>
                 <th>Seed Total</th>
+                <th>Seed Count</th>
                 <th>Seed Remaining</th>
                 <th>Seed Errors</th>
                 <th>Date Created</th>

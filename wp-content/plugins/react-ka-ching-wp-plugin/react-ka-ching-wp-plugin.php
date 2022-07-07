@@ -288,7 +288,7 @@ if (!class_exists('reactkachingwpplugin')) {
                 $envs = $envs . " AMAZON_REGION=" . $adminSettings->amazonRegion;
                 $envs = $envs . " WP_URL=" .  $adminSettings->wpUrl;
                 $envs = $envs . " SEED_ID=" . $seedID;
-                `{$envs} npx --yes react-ka-ching --seed --skip >> /tmp/react-ka-ching.log &`;
+                `{$envs} npx --yes react-ka-ching@latest --seed --skip >> /tmp/react-ka-ching.log &`;
             }
 
             wp_redirect(admin_url('admin.php') . "?page=" . $this->plugin_name());

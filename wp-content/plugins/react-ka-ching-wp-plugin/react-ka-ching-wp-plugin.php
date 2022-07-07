@@ -26,11 +26,15 @@ if (!class_exists('reactkachingwpplugin')) {
             add_action('admin_post_react_ka_ching_form_response', [$this, 'updateConfig']);
             add_action('admin_post_react_ka_ching_seed_form_response', [$this, 'seedData']);
             add_action('wp_ajax_react_ka_ching_seed_get_request', [$this, 'getSeedTableAjax']);
-            add_action('rest_api_init', function () {
-                register_rest_route('react-ka-ching/v1', '/webhook', array(
-                    'methods' => 'POST',
-                    'callback' => 'webhookRequest',
-                ));
+            add_action('rest_api_init', function ($server) {
+                register_rest_route(
+                    'react-ka-ching-wp/v1',
+                    '/seed' . '/(?P<id>[\d]+)',
+                    [
+                        'methods' => 'PUT',
+                        'callback' => [$this, 'updateSeedCallback'],
+                    ]
+                );
             });
         }
 
@@ -39,6 +43,7 @@ if (!class_exists('reactkachingwpplugin')) {
             global $wpdb;
             return $wpdb;
         }
+
         function tableName()
         {
             return $this->wpdb()->prefix . "react_ka_ching";
@@ -126,6 +131,7 @@ if (!class_exists('reactkachingwpplugin')) {
             // Return the final value
             return $output;
         }
+
         function updateConfig()
         {
             if (isset($_POST['react_ka_ching_settings_form_nonce']) && wp_verify_nonce($_POST['react_ka_ching_settings_form_nonce'], 'react_ka_ching_settings_form_nonce')) {
@@ -173,6 +179,7 @@ if (!class_exists('reactkachingwpplugin')) {
             $row = $this->wpdb()->get_row("SELECT * FROM " . $this->tableName() . " WHERE key_name='config'");
             return json_decode($row->key_value);
         }
+
         function render_admin_panel()
         {
             include(sprintf("%s/views/admin.php", dirname(__FILE__)));
@@ -205,7 +212,7 @@ if (!class_exists('reactkachingwpplugin')) {
 
         function createSeedRecord($seedName, $params)
         {
-            return $this->wpdb()->insert(
+            $this->wpdb()->insert(
                 $this->seedTableName(),
                 array(
                     'seed_name' => $seedName,
@@ -217,6 +224,7 @@ if (!class_exists('reactkachingwpplugin')) {
                     'seed_total' => $params->seedTotal ?? $params["seedTotal"] ?? 0,
                 )
             );
+            return $this->wpdb()->insert_id;
         }
 
         function getSeedTableAjax()
@@ -256,7 +264,6 @@ if (!class_exists('reactkachingwpplugin')) {
 
         function deleteSeedRecord()
         {
-
             $id = $_POST["id"];
             $this->wpdb()->delete($this->seedTableName(), ["id" => $id]);
         }
@@ -265,6 +272,10 @@ if (!class_exists('reactkachingwpplugin')) {
         {
             if (isset($_POST['react_ka_ching_seed_form_nonce']) && wp_verify_nonce($_POST['react_ka_ching_seed_form_nonce'], 'react_ka_ching_seed_form_nonce')) {
                 $adminSettings = $this->get_config();
+                $seedID = $this->createSeedRecord(sanitize_text_field($_POST["seedName"]), [
+                    'seedSearchKeywords' => sanitize_text_field($_POST["amazonKeywords"]),
+                    'seedSearchIndex' => sanitize_text_field($_POST["amazonSearchIndex"])
+                ]);
                 $envs = "WP_USER=" . $adminSettings->wpUser;
                 $envs = $envs . " WP_PASS=\"" . $this->encode_decode($adminSettings->wpPass, false) . "\"";
                 $envs = $envs . " WP_STATUS=" . $adminSettings->wpStatus;
@@ -276,38 +287,45 @@ if (!class_exists('reactkachingwpplugin')) {
                 $envs = $envs . " AMAZON_HOST=" . $adminSettings->amazonHost;
                 $envs = $envs . " AMAZON_REGION=" . $adminSettings->amazonRegion;
                 $envs = $envs . " WP_URL=" .  $adminSettings->wpUrl;
-
+                $envs = $envs . " SEED_ID=" . $seedID;
                 `{$envs} npx --yes react-ka-ching --seed --skip >> /tmp/react-ka-ching.log &`;
-                $this->createSeedRecord(sanitize_text_field($_POST["seedName"]), [
-                    'seedSearchIndex' => sanitize_text_field($_POST["amazonKeywords"]),
-                    'seedSearchKeywords' => sanitize_text_field($_POST["amazonSearchIndex"])
-                ]);
             }
 
             wp_redirect(admin_url('admin.php') . "?page=" . $this->plugin_name());
             exit;
         }
 
-
-        function webhookRequest()
+        function updateSeedCallback($request)
         {
-            $id = intval($_POST["id"], 10);
             if (
                 current_user_can('manage_options')
             ) {
                 $params = [
-                    "seedName" => $_POST["seedName"],
-                    "seedCount" => $_POST["seedCount"],
-                    "seedRemaining" => $_POST["seedRemaining"],
-                    "seedErrors" => $_POST["seedErrors"],
-                    "seedTotal" => $_POST["seedTotal"]
+                    "seedCount" => intval($request["seedCount"], 10),
+                    "seedRemaining" => intval($request["seedRemaining"], 10),
+                    "seedErrors" => intval($request["seedErrors"], 10),
+                    "seedTotal" => intval($request["seedTotal"], 10),
+                    "dateUpdated" => current_time('mysql')
                 ];
-                if ($_POST["id"]) {
-                    $this->createSeedRecord($_POST["seedName"], $params);
-                } else {
-                    $this->updateSeedRecord($id, $params);
+
+                if ($request["seedName"]) {
+                    $params["seedName"] = sanitize_text_field($request["seedName"]);
                 }
 
+                if ($request["seedSearchKeywords"]) {
+                    $params["seedSearchKeywords"] = sanitize_text_field($request["seedSearchKeywords"]);
+                }
+
+                if ($request["seedSearchIndex"]) {
+                    $params["seedSearchIndex"] = sanitize_text_field($request["seedSearchIndex"]);
+                }
+
+                if (!$request["id"]) {
+                    $id = $this->createSeedRecord($params["seedName"] ?? "npx react-ka-ching", $params);
+                } else {
+                    $id = intval($request['id'], 10);
+                    $this->updateSeedRecord($id, $params);
+                }
 
                 // Make your array as json
                 wp_send_json($this->getSeedRecord($id));

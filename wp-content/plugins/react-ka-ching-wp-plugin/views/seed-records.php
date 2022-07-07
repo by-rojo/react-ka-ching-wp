@@ -9,10 +9,11 @@ $adminUrl = admin_url('admin-ajax.php');
 <div>
     <br />
     <hr />
-    <h2>Seed Table</h2>
+    <h2>Product Installations</h2>
     <table>
         <thead>
             <tr>
+                <th>Seed ID</th>
                 <th>Seed Name</th>
                 <th>Seed Index</th>
                 <th>Seed Terms</th>
@@ -36,6 +37,7 @@ $adminUrl = admin_url('admin-ajax.php');
         var createRow = function(record) {
             seedTableBody.innerHTML += `
                 <tr>
+                    <td>SID: ${record.id}</td>
                     <td>${record.seed_name}</td>
                     <td>${record.seed_search_index}</td>
                     <td>${record.seed_search_keywords}</td>
@@ -62,7 +64,7 @@ $adminUrl = admin_url('admin-ajax.php');
                 },
                 error: function(e) {
                     console.error(e)
-                    setTableBody.innerHTML = '<tr><td colspan="8">Error: ' + (e.message || e) + '</td>'
+                    setTableBody.innerHTML = '<tr><td colspan="9">Error: ' + (e.message || e) + '</td>'
                 }
             })
         }, 5000)

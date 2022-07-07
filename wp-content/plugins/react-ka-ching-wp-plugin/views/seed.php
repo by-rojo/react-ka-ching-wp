@@ -43,7 +43,7 @@ $react_ka_ching_add_meta_nonce_sd = wp_create_nonce('react_ka_ching_seed_form_no
                 <option value="FashionBaby">Baby Clothing, Shoes & Jewelry</option>
                 <option value="FashionBoys">Boys Clothing, Shoes & Jewelry</option>
                 <option value="FashionGirls">Girls Clothing, Shoes & Jewelry</option>
-                <option value="FashionMen">Men Clothing, Shoes & Jewelry</option>
+                <option value="FashionMenx">Men Clothing, Shoes & Jewelry</option>
                 <option value="FashionWomen">Women Clothing, Shoes & Jewelry</option>
                 <option value="GardenAndOutdoor">Garden & Outdoor</option>
                 <option value="GiftCards">Gift Cards</option>
@@ -58,7 +58,6 @@ $react_ka_ching_add_meta_nonce_sd = wp_create_nonce('react_ka_ching_seed_form_no
                 <option value="Luggage">Luggage & Travel Gear</option>
                 <option value="LuxuryBeauty">Luxury Beauty</option>
                 <option value="Magazines">Magazine Subscriptions</option>
-                <option>Miscellaneous</option>
                 <option value="MobileAndAccessories">Cell Phones & Accessories</option>
                 <option value="MobileApps">Apps & Games</option>
                 <option value="MoviesAndTV">Movies & TV</option>
@@ -67,7 +66,6 @@ $react_ka_ching_add_meta_nonce_sd = wp_create_nonce('react_ka_ching_seed_form_no
                 <option value="OfficeProducts">Office Products</option>
                 <option value="PetSupplies">Pet Supplies</option>
                 <option value="Photo">Camera & Photo</option>
-                <option>Popular</option>
                 <option>Shoes</option>
                 <option>Software</option>
                 <option value="SportsAndOutdoors">Sports & Outdoors</option>

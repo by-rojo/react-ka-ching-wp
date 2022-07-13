@@ -30,7 +30,7 @@ $adminSettings = $this->get_config();
             </fieldset>
             <fieldset>
                 <label>WordPress internal url</label>
-                <input type="url" name="wpUrl" value="<?php echo $adminSettings->wpUrl ? $adminSettings->wpUrl : site_url(); ?>"></input>
+                <input type="url" name="wpUrl" value="<?php echo $adminSettings->wpUrl ? $adminSettings->wpUrl : 'http://localhost:80' ?>"></input>
             </fieldset>
             <fieldset>
                 <label>WordPress default post status</label>
